@@ -6,7 +6,6 @@
         xmlns:local="clr-namespace:TestTask"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+    <DataGrid x:Name="dataGrid1" Margin="0" d:LayoutOverrides="Width, Height"/>
+
 </Window>
