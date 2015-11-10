@@ -10,6 +10,8 @@ using TestTask.Model;
 using System.Threading;
 using System.Windows.Input;
 using System.Security.Cryptography;
+using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace TestTask.ViewModel
 {
@@ -21,6 +23,7 @@ namespace TestTask.ViewModel
         Thread filefinder;
         Thread hashcalc;
         Thread icongeter;
+
         public ViewModelMain()
         {
             Files = new ObservableCollection<file>();
@@ -31,15 +34,14 @@ namespace TestTask.ViewModel
 
             filefinder.Name = "FileFinder";
             filefinder.IsBackground = true;
+            filefinder.Priority = ThreadPriority.Highest;
             hashcalc.Name = "hashcalc";
             hashcalc.IsBackground = true;
-            filefinder.Priority = ThreadPriority.Highest;
             icongeter.Name = "icongeter";
             icongeter.IsBackground = true;
             filefinder.Start();
             hashcalc.Start();
             icongeter.Start();
-
 
         }
         public ObservableCollection<file> Files
@@ -54,7 +56,6 @@ namespace TestTask.ViewModel
                 OnPropertyChanged("Files");
             }
         }
-
         public void TraverseTree()
         {
             const string root = @"C:\";
@@ -90,9 +91,12 @@ namespace TestTask.ViewModel
                     while (i < dirinfo.Length)
                     {
                         FilesQueue.Enqueue(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName));
-                        Files.Add(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName));
+                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+                        {
+                            Files.Add(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName)); // Add row on UI thread 
+                        }));
+                        //Files.Add(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName));
                         ++i;
-
                     }
                 }
 
@@ -117,15 +121,16 @@ namespace TestTask.ViewModel
 
         public void SetMD5HashFromFile()
         {
+            Thread.Sleep(1000);
             int i = 0;
-            while (i < FilesQueue.Count)
+            while (FilesQueue.Count > 0)
             {
 
                 try
                 {
                     lock (FilesQueue)
                     {
-                        file temp = FilesQueue.ElementAt(i);
+                        file temp = FilesQueue.Dequeue();
                         var md5 = MD5.Create();
                         var stream = File.OpenRead(temp.Path);
                         Files[i].Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty);
@@ -156,10 +161,11 @@ namespace TestTask.ViewModel
         }
         public void SetIcon()
         {
+            Thread.Sleep(2000);
             int i = 0;
-            while (i < FilesQueue.Count)
+            while (i < Files.Count)
             {
-                lock (Files[i])
+                lock (Files)
                 {
                     var sysicon = System.Drawing.Icon.ExtractAssociatedIcon(Files[i].Path);
                     var bmpSrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(

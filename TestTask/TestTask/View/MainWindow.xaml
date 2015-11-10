@@ -80,13 +80,13 @@
         </Style>
     </Window.Resources>
 
-    <Window.DataContext>
+    <!--<Window.DataContext>
         <vm:ViewModelMain />
-    </Window.DataContext>
+    </Window.DataContext>-->
     <Grid>
         <DataGrid CanUserAddRows="False" ItemsSource="{Binding Files}"  AutoGenerateColumns="False"
                   CanUserDeleteRows="False" CanUserReorderColumns="False" 
-                  CanUserSortColumns="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" Margin="0,0,0,50" IsSynchronizedWithCurrentItem="False" CanUserResizeColumns="False">
+                  CanUserSortColumns="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" Margin="0,0,0,50" IsSynchronizedWithCurrentItem="True" CanUserResizeColumns="False" EnableColumnVirtualization="True" UseLayoutRounding="True" AreRowDetailsFrozen="True">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn Header="Icon">
