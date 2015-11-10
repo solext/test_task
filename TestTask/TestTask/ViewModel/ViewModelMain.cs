@@ -17,7 +17,7 @@ namespace TestTask.ViewModel
     {
         ObservableCollection<file> _Files;
         ICommand _command;
-        public static Queue<file> FilesQueue;
+        public Queue<file> FilesQueue;
         Thread filefinder;
         Thread hashcalc;
         Thread icongeter;
@@ -28,29 +28,25 @@ namespace TestTask.ViewModel
             filefinder = new Thread(TraverseTree);
             hashcalc = new Thread(SetMD5HashFromFile);
             icongeter = new Thread(SetIcon);
-            Thread.CurrentThread.Name = "main";
 
             filefinder.Name = "FileFinder";
             filefinder.IsBackground = true;
-            filefinder.Priority = ThreadPriority.Highest;
-            hashcalc.Priority = ThreadPriority.BelowNormal;
-            icongeter.Priority = ThreadPriority.BelowNormal;
             hashcalc.Name = "hashcalc";
             hashcalc.IsBackground = true;
-
+            filefinder.Priority = ThreadPriority.Highest;
             icongeter.Name = "icongeter";
             icongeter.IsBackground = true;
-
             filefinder.Start();
             hashcalc.Start();
             icongeter.Start();
+
 
         }
         public ObservableCollection<file> Files
         {
             get
             {
-                    return _Files;
+                return _Files;
             }
             set
             {
@@ -61,11 +57,8 @@ namespace TestTask.ViewModel
 
         public void TraverseTree()
         {
-            const string root = @"E:\OneDrive\Документи";
-            // Data structure to hold names of subfolders to be
-            // examined for files.
+            const string root = @"C:\";
             Stack<string> dirs = new Stack<string>();
-
             if (!System.IO.Directory.Exists(root))
             {
                 throw new ArgumentException();
@@ -80,15 +73,6 @@ namespace TestTask.ViewModel
                 {
                     subDirs = System.IO.Directory.GetDirectories(currentDir);
                 }
-                // An UnauthorizedAccessException exception will be thrown if we do not have
-                // discovery permission on a folder or file. It may or may not be acceptable 
-                // to ignore the exception and continue enumerating the remaining files and 
-                // folders. It is also possible (but unlikely) that a DirectoryNotFound exception 
-                // will be raised. This will happen if currentDir has been deleted by
-                // another application or thread after our call to Directory.Exists. The 
-                // choice of which exceptions to catch depends entirely on the specific task 
-                // you are intending to perform and also on how much you know with certainty 
-                // about the systems on which this code will run.
                 catch (UnauthorizedAccessException e)
                 {
                     Console.WriteLine(e.Message);
@@ -102,78 +86,126 @@ namespace TestTask.ViewModel
                 try
                 {
                     FileInfo[] dirinfo = new DirectoryInfo(currentDir).GetFiles();
-                    foreach (FileInfo i in dirinfo)
+                    int i = 0;
+                    while (i < dirinfo.Length)
                     {
-                        lock (FilesQueue)
-                        {
-                            FilesQueue.Enqueue(new file(i.Name, string.Empty, null, i.FullName));
-                            Files.Add(new file(i.Name, string.Empty, null, i.FullName));
-                        }
+                        FilesQueue.Enqueue(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName));
+                        Files.Add(new file(dirinfo[i].Name, string.Empty, null, dirinfo[i].FullName));
+                        ++i;
+
                     }
                 }
 
                 catch (UnauthorizedAccessException e)
                 {
-
                     Console.WriteLine(e.Message);
                     continue;
                 }
-
                 catch (System.IO.DirectoryNotFoundException e)
                 {
                     Console.WriteLine(e.Message);
                     continue;
                 }
-                // Perform the required action on each file here.
-                // Modify this block to perform your required task.
-                // Push the subdirectories onto the stack for traversal.
-                // This could also be done before handing the files.
+                catch (Exception)
+                {
+                    continue;
+                }
                 foreach (string str in subDirs)
                     dirs.Push(str);
             }
         }
+
         public void SetMD5HashFromFile()
         {
             int i = 0;
-            foreach (file t in FilesQueue)
+            while (i < FilesQueue.Count)
             {
-                lock (FilesQueue)
+
+                try
                 {
-                    file temp = FilesQueue.ElementAt(i);
-                    using (var md5 = MD5.Create())
+                    lock (FilesQueue)
                     {
-                        using (var stream = File.OpenRead(temp.Path))
-                        {
-                            Files[i].Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty);
-                            ++i;
-                        }
+                        file temp = FilesQueue.ElementAt(i);
+                        var md5 = MD5.Create();
+                        var stream = File.OpenRead(temp.Path);
+                        Files[i].Hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty);
+                        ++i;
                     }
                 }
+                catch (System.IO.IOException e)
+                {
+                    Files[i].Hash = "has not access";
+                    ++i;
+                    continue;
+                }
+                catch (System.UnauthorizedAccessException e)
+                {
+                    Files[i].Hash = "Access deny";
+                    ++i;
+                    continue;
+                }
+                catch (Exception)
+                {
+                    Files[i].Hash = "Access deny";
+                    ++i;
+                    continue;
+                }
+
+
             }
         }
         public void SetIcon()
         {
             int i = 0;
-            lock (FilesQueue.ElementAt(i))
+            while (i < FilesQueue.Count)
             {
-                foreach (file f in FilesQueue)
+                lock (Files[i])
                 {
-                    lock (FilesQueue)
-                    {
-                        file temp = FilesQueue.ElementAt(i);
-                        var sysicon = System.Drawing.Icon.ExtractAssociatedIcon(temp.Path);
-                        var bmpSrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
-                                    sysicon.Handle,
-                                    System.Windows.Int32Rect.Empty,
-                                    System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
-                        bmpSrc.Freeze();
-                        Files[i].Icon = bmpSrc;
-                        Files[i].Icon.Freeze();
-                        ++i;
+                    var sysicon = System.Drawing.Icon.ExtractAssociatedIcon(Files[i].Path);
+                    var bmpSrc = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(
+                                sysicon.Handle,
+                                System.Windows.Int32Rect.Empty,
+                                System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+                    bmpSrc.Freeze();
+                    Files[i].Icon = bmpSrc;
+                    Files[i].Icon.Freeze();
+                    ++i;
 
-                    }
                 }
             }
+        }
+
+        public ICommand StopScan
+        {
+            get
+            {
+                if (_command == null)
+                {
+                    _command = new file.DelegateCommand(CanExecute, Execute);
+                }
+                return _command;
+            }
+        }
+        bool isStop = false;
+        private void Execute(object parameter)
+        {
+            if (!isStop)
+            {
+                filefinder.Abort();
+                hashcalc.Abort();
+                icongeter.Abort();
+            }
+            else
+            {
+                filefinder.Start();
+                hashcalc.Start();
+                icongeter.Start();
+            }
+        }
+
+        private bool CanExecute(object parameter)
+        {
+            return true;
         }
     }
 }

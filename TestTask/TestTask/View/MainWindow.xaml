@@ -6,19 +6,89 @@
         xmlns:vm="clr-namespace:TestTask.ViewModel"
         xmlns:local="clr-namespace:TestTask"
         mc:Ignorable="d"
-        Title="TestTask" Height="350" Width="525">
+        Title="TestTask">
+    <Window.Resources>
+        <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle">
+                <Setter.Value>
+                    <Style>
+                        <Setter Property="Control.Template">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <Rectangle Margin="2" SnapsToDevicePixels="True" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="#FFDDDDDD"/>
+            <Setter Property="BorderBrush" Value="#FF707070"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid Width="Auto" Margin="-5,0,0,-1" HorizontalAlignment="Stretch">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="5*"/>
+                                <RowDefinition Height="29*"/>
+                                <RowDefinition Height="11*"/>
+                            </Grid.RowDefinitions>
+                            <Rectangle HorizontalAlignment="Right" Width="50" StrokeThickness="3" Grid.RowSpan="3">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FFDFDFEE" Offset="0.243"/>
+                                        <GradientStop Color="#FFA9A9FF" Offset="0.97"/>
+                                        <GradientStop Color="#FFD9D9F9" Offset="0.591"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+
+                            </Rectangle>
+                            <Ellipse HorizontalAlignment="Left" Width="35" StrokeThickness="3" Grid.RowSpan="3" Margin="5,0,0,0">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FFDFDFEE" Offset="0.243"/>
+                                        <GradientStop Color="#FFA9A9FF" Offset="0.97"/>
+                                        <GradientStop Color="#FFD9D9F9" Offset="0.591"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <Rectangle Margin="25,0,50,0" Grid.RowSpan="3">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FFDFDFEE" Offset="0.243"/>
+                                        <GradientStop Color="#FFA9A9FF" Offset="0.97"/>
+                                        <GradientStop Color="#FFD9D9F9" Offset="0.591"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Ellipse HorizontalAlignment="Left" Width="30" Margin="10,-1.001,0,2.111" Height="30" Grid.RowSpan="2" Grid.Row="1">
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="/TestTask;component/Image/1.png"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <TextBlock x:Name="textBlock" Margin="52,-0.199,0,2" TextWrapping="Wrap" Text="Stop Scan" FontSize="24" HorizontalAlignment="Left" Width="110" Height="Auto" VerticalAlignment="Stretch" Grid.RowSpan="3"/>
+                            <TextBlock x:Name="textBlock1" HorizontalAlignment="Right" TextWrapping="Wrap" Width="43" TextAlignment="Center" Height="35" VerticalAlignment="Bottom" FontSize="29.333" Foreground="#FFC1BCBC" Margin="0,-0.319,0,0.319" Grid.RowSpan="3" Grid.Row="0"><Span FontWeight="Bold" FontFamily="Times New Roman"><Run Text="»"/></Span></TextBlock>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Window.DataContext>
         <vm:ViewModelMain />
     </Window.DataContext>
     <Grid>
-        <DataGrid CanUserAddRows="False" ItemsSource="{Binding Files}" AutoGenerateColumns="False"
+        <DataGrid CanUserAddRows="False" ItemsSource="{Binding Files}"  AutoGenerateColumns="False"
                   CanUserDeleteRows="False" CanUserReorderColumns="False" 
-                  CanUserSortColumns="False">
+                  CanUserSortColumns="False" CanUserResizeRows="False" RowDetailsVisibilityMode="Collapsed" Margin="0,0,0,50" IsSynchronizedWithCurrentItem="False" CanUserResizeColumns="False">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Name" Binding="{Binding Path=Name,UpdateSourceTrigger=PropertyChanged}"/>
-                <DataGridTextColumn Header="Hash" Binding="{Binding Path=Hash, UpdateSourceTrigger=PropertyChanged}"/>
                 <DataGridTemplateColumn Header="Icon">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
@@ -26,7 +96,11 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Path=Name,UpdateSourceTrigger=PropertyChanged}"/>
+                <DataGridTextColumn Header="Hash" Binding="{Binding Path=Hash, UpdateSourceTrigger=PropertyChanged}"/>
             </DataGrid.Columns>
         </DataGrid>
+        <Button x:Name="button" Content="Button" Command="{Binding StopScan, Mode=OneWay}" 
+                                        CommandParameter="{Binding}" Height="34" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="225" Style="{DynamicResource ButtonStyle1}" Margin="0,0,10,10"/>
     </Grid>
 </Window>
