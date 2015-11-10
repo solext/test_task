@@ -121,7 +121,7 @@ namespace TestTask.ViewModel
 
         public void SetMD5HashFromFile()
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
             int i = 0;
             while (FilesQueue.Count > 0)
             {
